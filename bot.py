@@ -21,23 +21,27 @@ async def on_member_join(member):
     
 @bot.command(name='add')
 async def add_data(ctx):
+    # Get today's date
+    today = datetime.date.today()
+
     # Send a message prompting the user to enter the date
     await ctx.send("主人的作业哪天due呢喵~? (YYYY-MM-DD)")
 
-    # Define a check function to make sure the response is from the same user
+    # Define a check function to make sure the response is from the same user and the date is later than today
     def check(message):
-        return message.author == ctx.author and message.content.count("-") == 2
+        try:
+            date_str = message.content.strip()
+            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+            return message.author == ctx.author and date_obj > today
+        except ValueError:
+            return False
 
     # Wait for the user to enter the date as a separate message
     response = await bot.wait_for('message', check=check)
 
     # Convert the user's response to a date object
-    try:
-        date_str = response.content.strip()
-        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    except ValueError:
-        await ctx.send("日期的格式不正确呢喵QAQ")
-        return
+    date_str = response.content.strip()
+    date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
 
     # Check if the user is already in the dictionary
     if str(ctx.author.id) not in user_data:
@@ -48,6 +52,7 @@ async def add_data(ctx):
 
     # Print the user's data
     print(user_data)
+    await ctx.send(date_str + " 已经添加了喵~")
     
 @bot.command(name='remove')
 async def remove_data(ctx):
