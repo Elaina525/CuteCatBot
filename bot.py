@@ -44,21 +44,14 @@ async def add_data(ctx):
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
-        return message.author == ctx.author and (
-            message.content.isdigit() and 
-            0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
+        return message.author == ctx.author and (message.content.isdigit() and 0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
-    while True:
-        try:
-            response = await bot.wait_for('message', check=check, timeout=30.0)
-            break
-        except asyncio.TimeoutError:
-            await ctx.send('时间到啦，主人可以再试一次喵~')
-            return
-
+    response = await bot.wait_for('message', check=check)
     if response.content.lower() == 'exit':
         await ctx.send('(✺ω✺)已退出添加课程喵~')
+    elif chosen_index >= len(user_data[str(ctx.author.id)]):
+        await ctx.send("这个编号不在范围内，请输入正确的编号喵(。・`ω´・)")
     else:
         chosen_index = int(response.content) - 1
         chosen_course = list(courses.keys())[chosen_index]
@@ -88,20 +81,25 @@ async def remove_data(ctx):
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
-        return message.author == ctx.author and message.content.isdigit() and 0 < int(message.content) <= len(user_data[str(ctx.author.id)]) or message.content == 'exit'
+        return message.author == ctx.author and (
+            message.content.isdigit() and 
+            0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
-    response = await bot.wait_for('message', check=check)
+    while True:
+        response = await bot.wait_for('message', check=check)
+        if response.content.lower() == 'exit':
+            await ctx.send("已退出移除课程喵~(=｀ω´=)")
+            return
 
-    # If the user entered "exit", exit the command
-    if response.content == 'exit':
-        await ctx.send("已退出移除课程喵~(=｀ω´=)")
-        return
-
-    # Get the chosen course and remove it from the user's list of courses
-    chosen_index = int(response.content) - 1
-    chosen_course = user_data[str(ctx.author.id)][chosen_index]
-    user_data[str(ctx.author.id)].remove(chosen_course)
+        chosen_index = int(response.content) - 1
+        if chosen_index >= len(user_data[str(ctx.author.id)]):
+            await ctx.send("这个编号不在范围内，请输入正确的编号喵(。・`ω´・)")
+        else:
+            chosen_course = user_data[str(ctx.author.id)][chosen_index]
+            user_data[str(ctx.author.id)].remove(chosen_course)
+            await ctx.send(f"{chosen_course} 已经从您的课程列表中移除了喵~(o^∇^o)ﾉ")
+            break
 
     # Print the user's data
     print(user_data)
@@ -109,8 +107,6 @@ async def remove_data(ctx):
     # Write updated user data to file
     with open('./user_data.json', 'w') as f:
         json.dump(user_data, f)
-
-    await ctx.send(f"{chosen_course} 已经从您的课程列表中移除了喵~(o^∇^o)ﾉ")
 
 
 @bot.command(name='due')
