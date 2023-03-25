@@ -44,17 +44,29 @@ async def add_data(ctx):
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
-        return message.author == ctx.author and (message.content.isdigit() and 0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
+        return message.author == ctx.author and (
+            message.content.isdigit() and 
+            0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
-    response = await bot.wait_for('message', check=check)
+    while True:
+        try:
+            response = await bot.wait_for('message', check=check, timeout=30.0)
+            break
+        except asyncio.TimeoutError:
+            await ctx.send('时间到啦，主人可以再试一次喵~')
+            return
+
     if response.content.lower() == 'exit':
         await ctx.send('(✺ω✺)已退出添加课程喵~')
     else:
         chosen_index = int(response.content) - 1
         chosen_course = list(courses.keys())[chosen_index]
-        user_data[str(ctx.author.id)].append(chosen_course)
-        await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
+        if chosen_course in user_data[str(ctx.author.id)]:
+            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经被你添加了喵~")
+        else:
+            user_data[str(ctx.author.id)].append(chosen_course)
+            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
 
     # Print the user's data
     print(user_data)
