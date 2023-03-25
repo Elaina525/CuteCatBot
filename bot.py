@@ -50,16 +50,11 @@ async def add_data(ctx):
     response = await bot.wait_for('message', check=check)
     if response.content.lower() == 'exit':
         await ctx.send('(✺ω✺)已退出添加课程喵~')
-    elif response >= len(courses):
-        await ctx.send("这个编号不在范围内，请输入正确的编号喵(。・`ω´・)")
     else:
         chosen_index = int(response.content) - 1
         chosen_course = list(courses.keys())[chosen_index]
-        if chosen_course in user_data[str(ctx.author.id)]:
-            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经被你添加了喵~")
-        else:
-            user_data[str(ctx.author.id)].append(chosen_course)
-            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
+        user_data[str(ctx.author.id)].append(chosen_course)
+        await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
 
     # Print the user's data
     print(user_data)
