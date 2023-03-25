@@ -110,6 +110,7 @@ async def show_due_dates(ctx):
 
     # Iterate over the user's courses and calculate the remaining time to the first due date
     remaining_times = []
+    await ctx.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n")
     for course_name in user_data[str(ctx.author.id)]:
         due_dates = courses[course_name]
         if due_dates[0] == "N/A":
