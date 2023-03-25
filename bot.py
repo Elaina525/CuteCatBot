@@ -50,7 +50,7 @@ async def add_data(ctx):
     response = await bot.wait_for('message', check=check)
     if response.content.lower() == 'exit':
         await ctx.send('(✺ω✺)已退出添加课程喵~')
-    elif chosen_index >= len(courses):
+    elif response >= len(courses):
         await ctx.send("这个编号不在范围内，请输入正确的编号喵(。・`ω´・)")
     else:
         chosen_index = int(response.content) - 1
