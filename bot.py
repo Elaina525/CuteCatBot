@@ -40,23 +40,21 @@ async def add_data(ctx):
 
     # Prompt the user to select a course
     course_options = "\n".join([f"{i+1}. {course}" for i, course in enumerate(courses)])
-    await ctx.send(f"主人，请选择要添加的课程喵ฅ(＾・ω・＾ฅ)：\n{course_options}\n或者回复'exit'退出添加(✿✿ヘᴥヘ)")
+    await ctx.send(f"主人，请选择要添加的课程喵ฅ(＾・ω・＾ฅ):\n{course_options}\n或者回复'exit'退出添加(✿✿ヘᴥヘ)")
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
         return message.author == ctx.author and (message.content.isdigit() and 0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
-    while True:
-        response = await bot.wait_for('message', check=check)
-        if response.content.lower() == 'exit':
-            await ctx.send('(✺ω✺)已退出添加课程喵~')
-            break
-        else:
-            chosen_index = int(response.content) - 1
-            chosen_course = list(courses.keys())[chosen_index]
-            user_data[str(ctx.author.id)].append(chosen_course)
-            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
+    response = await bot.wait_for('message', check=check)
+    if response.content.lower() == 'exit':
+        await ctx.send('(✺ω✺)已退出添加课程喵~')
+    else:
+        chosen_index = int(response.content) - 1
+        chosen_course = list(courses.keys())[chosen_index]
+        user_data[str(ctx.author.id)].append(chosen_course)
+        await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
 
     # Print the user's data
     print(user_data)
@@ -74,7 +72,7 @@ async def remove_data(ctx):
 
     # Show the user's current list of courses
     current_courses = "\n".join([f"{i+1}. {course}" for i, course in enumerate(user_data[str(ctx.author.id)])])
-    await ctx.send(f"主人，以下是您当前添加的课程喵(＾◡＾)：\n{current_courses}\n请选择要移除的课程编号，或者回复'exit'退出移除喵~(●ˇ∀ˇ●)")
+    await ctx.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n{current_courses}\n请选择要移除的课程编号,或者回复'exit'退出移除喵~(●ˇ∀ˇ●)")
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
