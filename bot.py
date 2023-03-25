@@ -45,17 +45,23 @@ async def add_data(ctx):
 
     # Define a check function to make sure the response is from the same user and that it is a valid choice
     def check(message):
-        return message.author == ctx.author and (message.content.isdigit() and 0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
+        return message.author == ctx.author and (
+            message.content.isdigit() and 
+            0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
     response = await bot.wait_for('message', check=check)
     if response.content.lower() == 'exit':
         await ctx.send('(✺ω✺)已退出添加课程喵~')
+        return
     else:
         chosen_index = int(response.content) - 1
         chosen_course = list(courses.keys())[chosen_index]
-        user_data[str(ctx.author.id)].append(chosen_course)
-        await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
+        if chosen_course in user_data[str(ctx.author.id)]:
+            await ctx.send(f"主人，你已经添加了 {chosen_course} 喵~")
+        else:
+            user_data[str(ctx.author.id)].append(chosen_course)
+            await ctx.send(f"٩(๑❛ᴗ❛๑)۶ {chosen_course} 已经添加了喵~")
 
     # Print the user's data
     print(user_data)
@@ -63,6 +69,7 @@ async def add_data(ctx):
     # Write updated user data to file
     with open('user_data.json', 'w') as f:
         json.dump(user_data, f)
+
     
 @bot.command(name='remove')
 async def remove_data(ctx):
@@ -82,20 +89,15 @@ async def remove_data(ctx):
             0 < int(message.content) <= len(courses)) or message.content.lower() == 'exit'
 
     # Wait for the user to choose a course or exit
-    while True:
-        response = await bot.wait_for('message', check=check)
-        if response.content.lower() == 'exit':
-            await ctx.send("已退出移除课程喵~(=｀ω´=)")
-            return
+    response = await bot.wait_for('message', check=check)
+    if response.content.lower() == 'exit':
+        await ctx.send("已退出移除课程喵~(=｀ω´=)")
+        return
 
-        chosen_index = int(response.content) - 1
-        if chosen_index >= len(user_data[str(ctx.author.id)]):
-            await ctx.send("这个编号不在范围内，请输入正确的编号喵(。・`ω´・)")
-        else:
-            chosen_course = user_data[str(ctx.author.id)][chosen_index]
-            user_data[str(ctx.author.id)].remove(chosen_course)
-            await ctx.send(f"{chosen_course} 已经从您的课程列表中移除了喵~(o^∇^o)ﾉ")
-            break
+    chosen_index = int(response.content) - 1
+    chosen_course = user_data[str(ctx.author.id)][chosen_index]
+    user_data[str(ctx.author.id)].remove(chosen_course)
+    await ctx.send(f"{chosen_course} 已经从您的课程列表中移除了喵~(o^∇^o)ﾉ")
 
     # Print the user's data
     print(user_data)
@@ -128,33 +130,33 @@ async def show_due_dates(ctx):
     # Send the remaining time for each course as a message
     await ctx.send("\n".join(remaining_times) + " 喵~♥")
     
-@tasks.loop(hours=24)
-async def send_due_dates():
-    now = datetime.datetime.now()
-    if now.hour == 7:
-        for guild in bot.guilds:
-            for member in guild.members:
-                if str(member.id) not in user_data or not user_data[str(member.id)]:
-                    await member.send("你还没有添加过课程喵~(´･ω･｀)")
-                else:
-                    remaining_times = []
-                    await member.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n")
-                    for course_name in user_data[str(member.id)]:
-                        due_dates = courses[course_name]
-                        if due_dates[0] == "N/A":
-                            remaining_times.append(f"{course_name}: 没有截止日期喵~(╯✧∇✧)╯")
-                        else:
-                            first_due_date = datetime.datetime.strptime(due_dates[0], "%Y-%m-%d")
-                            remaining_time = first_due_date - datetime.datetime.now()
-                            remaining_time_str = f"{remaining_time.days}天{remaining_time.seconds//3600}小时{(remaining_time.seconds//60)%60}分钟"
-                            remaining_times.append(f"{course_name}: 距离第一个截止日期还有{remaining_time_str} 喵~♪(^∇^*)")
+# @tasks.loop(hours=24)
+# async def send_due_dates():
+#     now = datetime.datetime.now()
+#     if now.hour == 7:
+#         for guild in bot.guilds:
+#             for member in guild.members:
+#                 if str(member.id) not in user_data or not user_data[str(member.id)]:
+#                     await member.send("你还没有添加过课程喵~(´･ω･｀)")
+#                 else:
+#                     remaining_times = []
+#                     await member.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n")
+#                     for course_name in user_data[str(member.id)]:
+#                         due_dates = courses[course_name]
+#                         if due_dates[0] == "N/A":
+#                             remaining_times.append(f"{course_name}: 没有截止日期喵~(╯✧∇✧)╯")
+#                         else:
+#                             first_due_date = datetime.datetime.strptime(due_dates[0], "%Y-%m-%d")
+#                             remaining_time = first_due_date - datetime.datetime.now()
+#                             remaining_time_str = f"{remaining_time.days}天{remaining_time.seconds//3600}小时{(remaining_time.seconds//60)%60}分钟"
+#                             remaining_times.append(f"{course_name}: 距离第一个截止日期还有{remaining_time_str} 喵~♪(^∇^*)")
 
-                    # Send the remaining time for each course as a message
-                    await member.send("\n".join(remaining_times) + " 喵~♥")
+#                     # Send the remaining time for each course as a message
+#                     await member.send("\n".join(remaining_times) + " 喵~♥")
 
-@send_due_dates.before_loop
-async def before_send_due_dates():
-    await bot.wait_until_ready()
+# @send_due_dates.before_loop
+# async def before_send_due_dates():
+#     await bot.wait_until_ready()
     
 # send_due_dates.start()
     
