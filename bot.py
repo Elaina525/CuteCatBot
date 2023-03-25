@@ -156,4 +156,6 @@ async def send_due_dates():
 async def before_send_due_dates():
     await bot.wait_until_ready()
     
+send_due_dates.start()
+    
 bot.run(TOKEN)
