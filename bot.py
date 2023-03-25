@@ -1,3 +1,4 @@
+from asyncio import tasks
 import json
 import os
 from dotenv import load_dotenv
@@ -126,5 +127,33 @@ async def show_due_dates(ctx):
 
     # Send the remaining time for each course as a message
     await ctx.send("\n".join(remaining_times) + " 喵~♥")
+    
+@tasks.loop(hours=24)
+async def send_due_dates():
+    now = datetime.datetime.now()
+    if now.hour == 7:
+        for guild in bot.guilds:
+            for member in guild.members:
+                if str(member.id) not in user_data or not user_data[str(member.id)]:
+                    await member.send("你还没有添加过课程喵~(´･ω･｀)")
+                else:
+                    remaining_times = []
+                    await member.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n")
+                    for course_name in user_data[str(member.id)]:
+                        due_dates = courses[course_name]
+                        if due_dates[0] == "N/A":
+                            remaining_times.append(f"{course_name}: 没有截止日期喵~(╯✧∇✧)╯")
+                        else:
+                            first_due_date = datetime.datetime.strptime(due_dates[0], "%Y-%m-%d")
+                            remaining_time = first_due_date - datetime.datetime.now()
+                            remaining_time_str = f"{remaining_time.days}天{remaining_time.seconds//3600}小时{(remaining_time.seconds//60)%60}分钟"
+                            remaining_times.append(f"{course_name}: 距离第一个截止日期还有{remaining_time_str} 喵~♪(^∇^*)")
+
+                    # Send the remaining time for each course as a message
+                    await member.send("\n".join(remaining_times) + " 喵~♥")
+
+@send_due_dates.before_loop
+async def before_send_due_dates():
+    await bot.wait_until_ready()
     
 bot.run(TOKEN)
