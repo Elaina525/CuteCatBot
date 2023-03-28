@@ -1,9 +1,10 @@
-from asyncio import tasks
+import asyncio
 import json
 import os
 from dotenv import load_dotenv
 import datetime
-from discord.ext import commands
+from discord.ext import commands, tasks
+import pytz
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -23,9 +24,50 @@ if os.path.isfile('user_data.json'):
     with open('user_data.json', 'r') as f:
         user_data = json.load(f)
 
+@tasks.loop(minutes=60*24) # Task runs once a day
+async def my_background_task():
+    # Iterate through each user in user_data
+    for user_id, courses in user_data.items():
+        # Check if user has any courses
+        if len(courses) == 0:
+            continue
+        
+        # Find next due date for user
+        due_dates = []
+        for course in courses:
+            if courses[course][0] == "N/A":
+                continue
+            for date in courses[course]:
+                date_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
+                if date_obj.date() >= datetime.datetime.today().date():
+                    due_dates.append(date_obj)
+                    break
+        due_dates.sort()
+        if len(due_dates) == 0:
+            continue
+        next_due_date = due_dates[0]
+
+        # Get user object
+        user = await bot.fetch_user(user_id)
+
+        # Send message to user
+        await user.send(f"Hello {user.name}, your next due date is {next_due_date.date()}. Good luck!")
+
+
 @bot.event
 async def on_ready():
     print(f'{bot.user.name}已经连上')
+    # Calculate time until the next 7AM
+    tz = pytz.timezone('US/Eastern') # Replace with your desired timezone
+    now = datetime.datetime.now(tz)
+    target_time = datetime.time(hour=7, minute=0)
+    target_datetime = datetime.datetime.combine(now.date(), target_time)
+    if now.time() > target_time:
+        target_datetime += datetime.timedelta(days=1)
+    time_until_target = (target_datetime - now).total_seconds()
+    # Schedule task to run at the next 7AM
+    await asyncio.sleep(time_until_target)
+    my_background_task.start()
 
 async def on_member_join(member):
     await member.create_dm()
@@ -130,34 +172,26 @@ async def show_due_dates(ctx):
     # Send the remaining time for each course as a message
     await ctx.send("\n".join(remaining_times) + " 喵~♥")
     
-# @tasks.loop(hours=24)
-# async def send_due_dates():
-#     now = datetime.datetime.now()
-#     if now.hour == 7:
-#         for guild in bot.guilds:
-#             for member in guild.members:
-#                 if str(member.id) not in user_data or not user_data[str(member.id)]:
-#                     await member.send("你还没有添加过课程喵~(´･ω･｀)")
-#                 else:
-#                     remaining_times = []
-#                     await member.send(f"主人，以下是您当前添加的课程喵(＾◡＾):\n")
-#                     for course_name in user_data[str(member.id)]:
-#                         due_dates = courses[course_name]
-#                         if due_dates[0] == "N/A":
-#                             remaining_times.append(f"{course_name}: 没有截止日期喵~(╯✧∇✧)╯")
-#                         else:
-#                             first_due_date = datetime.datetime.strptime(due_dates[0], "%Y-%m-%d")
-#                             remaining_time = first_due_date - datetime.datetime.now()
-#                             remaining_time_str = f"{remaining_time.days}天{remaining_time.seconds//3600}小时{(remaining_time.seconds//60)%60}分钟"
-#                             remaining_times.append(f"{course_name}: 距离第一个截止日期还有{remaining_time_str} 喵~♪(^∇^*)")
+async def my_background_task():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        # Replace the following line with the task you want to run periodically
+        print("Running background task...")
+        await asyncio.sleep(60) # Task runs every 60 seconds
 
-#                     # Send the remaining time for each course as a message
-#                     await member.send("\n".join(remaining_times) + " 喵~♥")
-
-# @send_due_dates.before_loop
-# async def before_send_due_dates():
-#     await bot.wait_until_ready()
-    
-# send_due_dates.start()
+@client.event
+async def on_ready():
+    print(f"Logged in as {client.user}.")
+    # Calculate time until the next 7AM
+    tz = pytz.timezone('US/Eastern') # Replace with your desired timezone
+    now = datetime.datetime.now(tz)
+    target_time = datetime.time(hour=7, minute=0)
+    target_datetime = datetime.datetime.combine(now.date(), target_time)
+    if now.time() > target_time:
+        target_datetime += datetime.timedelta(days=1)
+    time_until_target = (target_datetime - now).total_seconds()
+    # Schedule task to run at the next 7AM
+    await asyncio.sleep(time_until_target)
+    client.loop.create_task(my_background_task())
     
 bot.run(TOKEN)
