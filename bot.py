@@ -58,7 +58,7 @@ async def my_background_task():
 async def on_ready():
     print(f'{bot.user.name}已经连上')
     # Calculate time until the next 7AM
-    tz = pytz.timezone('US/Eastern') # Replace with your desired timezone
+    tz = pytz.timezone('Australia/Melbourne')
     now = datetime.datetime.now(tz)
     target_time = datetime.time(hour=7, minute=0)
     target_datetime = datetime.datetime.combine(now.date(), target_time)
@@ -171,27 +171,5 @@ async def show_due_dates(ctx):
 
     # Send the remaining time for each course as a message
     await ctx.send("\n".join(remaining_times) + " 喵~♥")
-    
-async def my_background_task():
-    await client.wait_until_ready()
-    while not client.is_closed():
-        # Replace the following line with the task you want to run periodically
-        print("Running background task...")
-        await asyncio.sleep(60) # Task runs every 60 seconds
-
-@client.event
-async def on_ready():
-    print(f"Logged in as {client.user}.")
-    # Calculate time until the next 7AM
-    tz = pytz.timezone('US/Eastern') # Replace with your desired timezone
-    now = datetime.datetime.now(tz)
-    target_time = datetime.time(hour=7, minute=0)
-    target_datetime = datetime.datetime.combine(now.date(), target_time)
-    if now.time() > target_time:
-        target_datetime += datetime.timedelta(days=1)
-    time_until_target = (target_datetime - now).total_seconds()
-    # Schedule task to run at the next 7AM
-    await asyncio.sleep(time_until_target)
-    client.loop.create_task(my_background_task())
     
 bot.run(TOKEN)
