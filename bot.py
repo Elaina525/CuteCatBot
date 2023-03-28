@@ -10,7 +10,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='!')
 
 courses = {
-    "Professional Computing Practic": ["2023-05-12", "2023-05-26"],
+    "Professional Computing Practic": ["2023-03-31","2023-04-28","2023-05-12", "2023-05-26"],
     "Further Programming": ["N/A"],
     "Foundations of Artificial Intelligence for STEM": ["2023-04-07", "2023-05-12", "2023-06-02"],
     "Introduction to Cybersecurity": ["N/A"]
