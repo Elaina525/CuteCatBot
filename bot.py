@@ -58,6 +58,7 @@ async def my_background_task():
 async def on_ready():
     print(f'{bot.user.name}已经连上')
     # Calculate time until the next 7AM
+    
     tz = pytz.timezone('Australia/Melbourne')
     now = datetime.datetime.now(tz)
     target_time = datetime.time(hour=7, minute=0)
