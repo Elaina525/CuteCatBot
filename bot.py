@@ -20,6 +20,7 @@ courses = {
 user_data = {}
 
 
+
 # Load user data from file if exists
 if os.path.isfile('user_data.json'):
     with open('user_data.json', 'r') as f:
