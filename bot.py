@@ -26,32 +26,7 @@ if os.path.isfile('user_data.json'):
 
 @tasks.loop(minutes=60*24) # Task runs once a day
 async def my_background_task():
-    # Iterate through each user in user_data
-    for user_id, courses in user_data.items():
-        # Check if user has any courses
-        if len(courses) == 0:
-            continue
-        
-        # Find next due date for user
-        due_dates = []
-        for course in courses:
-            if courses[course][0] == "N/A":
-                continue
-            for date in courses[course]:
-                date_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
-                if date_obj.date() >= datetime.datetime.today().date():
-                    due_dates.append(date_obj)
-                    break
-        due_dates.sort()
-        if len(due_dates) == 0:
-            continue
-        next_due_date = due_dates[0]
-
-        # Get user object
-        user = await bot.fetch_user(user_id)
-
-        # Send message to user
-        await user.send(f"Hello {user.name}, your next due date is {next_due_date.date()}. Good luck!")
+    print("Background")
 
 
 @bot.event
